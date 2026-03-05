@@ -1,4 +1,4 @@
-# Unit 5.4. Making Code Reproducible 
+# Making Code Reproducible 
 # Part 3. Using the Deterministic Setting in Lightning
 
 import lightning as L
@@ -6,8 +6,6 @@ import torch
 import torch.nn.functional as F
 import torchmetrics
 from shared_utilities import PyTorchMLP, get_dataset_loaders
-from watermark import watermark
-
 
 class LightningModel(L.LightningModule):
     def __init__(self, model, learning_rate):
@@ -60,7 +58,6 @@ class LightningModel(L.LightningModule):
 
 if __name__ == "__main__":
 
-    print(watermark(packages="torch,lightning", python=True))
     print("Torch CUDA available?", torch.cuda.is_available())
 
     # New !!!
