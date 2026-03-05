@@ -3,11 +3,9 @@
 import lightning as L
 import torch
 from shared_utilities import LightningModel, MNISTDataModule, PyTorchMLP
-from watermark import watermark
 
 if __name__ == "__main__":
 
-    print(watermark(packages="torch,lightning", python=True))
     print("Torch CUDA available?", torch.cuda.is_available())
 
     torch.manual_seed(123)
