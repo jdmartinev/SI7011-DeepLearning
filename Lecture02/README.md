@@ -36,15 +36,7 @@ This class focuses on the following concepts:
 
 ---
 
-## Class Materials
-
-This class includes the following resources:
-
-- **Slides** – theoretical explanation of multi-layer neural networks and training.
-- **Example Code** – demonstrations of MLP architectures and training behavior.
-- **Notebook Exercise** – hands-on implementation of an MLP using PyTorch.
-
-Notebook exercise:
+# Notebook exercise:
 
 https://www.kaggle.com/code/juanmartinezv4399/si7011-dl-mlp-pytorch
 
