@@ -3,11 +3,8 @@ import sys
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.cli import LightningCLI
 from shared_utilities import CustomDataModule, LightningModel2
-from watermark import watermark
 
 if __name__ == "__main__":
-
-    print(watermark(packages="torch,lightning"))
 
     print(f"The provided arguments are {sys.argv[1:]}")
 
