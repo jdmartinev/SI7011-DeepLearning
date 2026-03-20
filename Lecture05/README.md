@@ -118,3 +118,31 @@ Students will explore:
 - evaluating model performance using appropriate metrics (e.g., MAE, RMSE)  
 
 The exercise encourages students to **experiment with different architectures and configurations**, understand the behavior of recurrent models, and develop intuition for modeling temporal data.
+
+## Deliverable
+
+Students must submit a **GitHub repository** containing the completed notebooks for this exercise.
+
+### Requirements
+
+The repository should include:
+
+- The **executed notebooks** (with outputs visible)  
+- Clear implementation of:
+  - RNN models  
+  - LSTM models  
+- Experiments showing:
+  - different sequence lengths and/or input configurations  
+  - comparison between models  
+- Proper organization and readability (clean code, comments, structure)
+
+### Evaluation Criteria
+
+Submissions will be evaluated based on:
+
+- **Correct implementation** of RNN and LSTM architectures  
+- **Experimental analysis** and comparison between approaches  
+- **Code quality and organization**  
+- **Reproducibility** (notebooks run without errors and outputs are included)  
+
+Students are encouraged to iterate on their models and document their findings directly in the notebooks.
