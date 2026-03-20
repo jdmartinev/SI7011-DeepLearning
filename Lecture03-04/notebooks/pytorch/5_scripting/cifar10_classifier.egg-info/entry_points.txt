@@ -1,0 +1,5 @@
+[console_scripts]
+evaluate = scripts.evaluate:main
+prepare-data = scripts.prepare_data:main
+serve = scripts.serve:main
+train = scripts.train:main

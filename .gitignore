@@ -1,3 +1,4 @@
 /Info/*
 /Lecture02/1_2_dataloaders/mnist_pngs/*
 /Lecture02/notebooks/1_pytorch/1_2_dataloaders/mnist-pngs/*
+**/.env

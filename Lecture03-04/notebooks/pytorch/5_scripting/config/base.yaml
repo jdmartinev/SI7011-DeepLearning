@@ -1,0 +1,42 @@
+data:
+  root: "data/"
+  num_classes: 10
+  val_split: 0.1          # fraction of train set used for validation
+  seed: 123
+  num_workers: 4
+  pin_memory: true
+
+model:
+  backbone: "resnet18"
+  weights: "IMAGENET1K_V1"
+  num_classes: 10
+
+training:
+  batch_size: 64
+  seed: 123
+
+  stage1:
+    epochs: 5
+    lr: 1.0e-3
+    weight_decay: 0.0
+    optimizer: "adam"
+
+  stage2:
+    epochs: 5
+    lr: 1.0e-4
+    weight_decay: 1.0e-4
+    optimizer: "adam"
+
+logging:
+  log_dir: "logs/"
+  run_name: "resnet18-two-stage"
+  log_every_n_steps: 50
+
+checkpoint:
+  save_dir: "runs/"
+  save_top_k: 2            # keep the 2 best checkpoints by val accuracy
+  monitor: "val/acc"
+
+serving:
+  host: "0.0.0.0"
+  port: 8081

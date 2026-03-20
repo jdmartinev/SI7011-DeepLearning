@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: cifar10-classifier
+Version: 0.1.0
+Summary: Two-stage ResNet-18 transfer learning on CIFAR-10
+Requires-Python: >=3.10
+Requires-Dist: torch>=2.1
+Requires-Dist: torchvision>=0.16
+Requires-Dist: torchmetrics>=1.2
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: scikit-learn>=1.3
+Requires-Dist: numpy>=1.24
+Requires-Dist: fastapi>=0.110
+Requires-Dist: uvicorn[standard]>=0.29
+Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: Pillow>=10.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
