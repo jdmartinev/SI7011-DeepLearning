@@ -29,7 +29,6 @@ Course Repository SI7011 Deep Learning at Universidad EAFIT
 | Laboratory II - CNNs and Transfer     | 16.25 %       | 
 | Laboratory III - RNNs                 | 16.25 %       | 
 | Laboratory IV - Transformers          | 16.25 %       | 
-| Integrator Project                    | 16.25 %       | 
 | Final Project            | 35 %       | Week 18   |
 
 
