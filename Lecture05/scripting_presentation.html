@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scripting en Proyectos de ML</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg:      #0a0a0f;
+    --surface: #12121a;
+    --border:  #1e1e2e;
+    --accent:  #5b8dee;
+    --accent2: #e85d5d;
+    --accent3: #4ecb8d;
+    --text:    #e8e8f0;
+    --muted:   #6b6b80;
+    --mono:    'IBM Plex Mono', monospace;
+    --sans:    'IBM Plex Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── slide container ── */
+  .deck {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px 64px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .35s ease;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ── grid lines background ── */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: .4;
+    pointer-events: none;
+  }
+
+  /* ── slide number ── */
+  .slide-num {
+    position: absolute;
+    bottom: 28px;
+    right: 40px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .1em;
+  }
+
+  /* ── progress bar ── */
+  #progress {
+    position: fixed;
+    bottom: 0; left: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width .35s ease;
+    z-index: 100;
+  }
+
+  /* ── nav ── */
+  .nav {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+  }
+  .nav button {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    padding: 8px 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .nav button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── typography ── */
+  .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    color: var(--text);
+  }
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  h2 {
+    font-size: clamp(22px, 3vw, 36px);
+    font-weight: 300;
+    letter-spacing: -.01em;
+    color: var(--text);
+    margin-bottom: 32px;
+  }
+  h2 em { font-style: normal; color: var(--accent); }
+
+  p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #b0b0c0;
+    max-width: 640px;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    color: var(--muted);
+    margin-top: 16px;
+    font-weight: 300;
+  }
+
+  /* ── code blocks ── */
+  pre {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 20px 24px;
+    width: 100%;
+    max-width: 700px;
+    overflow-x: auto;
+    color: #c8c8e0;
+  }
+  .kw  { color: var(--accent); }
+  .fn  { color: var(--accent3); }
+  .str { color: #e8c06a; }
+  .cm  { color: var(--muted); font-style: italic; }
+  .num { color: var(--accent2); }
+
+  /* ── layer diagram ── */
+  .layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    max-width: 640px;
+  }
+  .layer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 24px;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    position: relative;
+    transition: border-color .2s;
+  }
+  .layer:last-child { border-bottom: 1px solid var(--border); }
+  .layer:hover { border-color: var(--accent); z-index: 1; }
+  .layer-icon {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--accent);
+    min-width: 80px;
+  }
+  .layer-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .layer-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .layer-arrow {
+    position: absolute;
+    left: 50%;
+    bottom: -18px;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    z-index: 2;
+  }
+
+  /* ── rule card ── */
+  .rule-box {
+    border: 1px solid var(--accent);
+    padding: 28px 36px;
+    max-width: 600px;
+    text-align: center;
+    position: relative;
+  }
+  .rule-box::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -10px;
+    left: 24px;
+    background: var(--bg);
+    padding: 0 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .2em;
+    color: var(--accent);
+  }
+  .rule-text {
+    font-size: clamp(18px, 2.5vw, 28px);
+    font-weight: 300;
+    line-height: 1.4;
+    letter-spacing: -.01em;
+  }
+  .rule-text em {
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ── two column ── */
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+    max-width: 800px;
+  }
+  .col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .col-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .15em;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .col li {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #b0b0c0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .col li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+  }
+
+  /* ── pill list ── */
+  .pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    max-width: 700px;
+  }
+  .pill {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .pill.hi {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(91,141,238,.07);
+  }
+
+  /* ── table ── */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 760px;
+    font-size: 13px;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .15em;
+    color: var(--accent);
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+  td {
+    padding: 12px 16px;
+    color: #b0b0c0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-family: var(--mono); font-size: 12px; color: var(--accent3); }
+  td.yes { color: var(--accent3); }
+  td.no  { color: var(--accent2); }
+
+  /* ── highlight line ── */
+  .hl { color: var(--accent3); font-weight: 600; }
+  .hl2 { color: var(--accent2); font-weight: 600; }
+
+  /* stagger reveal */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .slide.active > * {
+    animation: fadeUp .4s ease both;
+  }
+  .slide.active > *:nth-child(2) { animation-delay: .08s; }
+  .slide.active > *:nth-child(3) { animation-delay: .16s; }
+  .slide.active > *:nth-child(4) { animation-delay: .24s; }
+  .slide.active > *:nth-child(5) { animation-delay: .32s; }
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+  <!-- 01 TITLE -->
+  <div class="slide active" id="s1">
+    <div class="label">SI7011 · Deep Learning</div>
+    <h1>Scripting en<br>Proyectos de <em>ML</em></h1>
+    <p class="subtitle">De notebooks a código industrial</p>
+    <div class="slide-num">01 / 09</div>
+  </div>
+
+  <!-- 02 THE PROBLEM -->
+  <div class="slide" id="s2">
+    <div class="label">El problema</div>
+    <h2>El notebook lo tiene <em>todo mezclado</em></h2>
+    <div class="pill-list">
+      <span class="pill">carga de datos</span>
+      <span class="pill">transformaciones</span>
+      <span class="pill">definición del modelo</span>
+      <span class="pill">loop de entrenamiento</span>
+      <span class="pill">evaluación</span>
+      <span class="pill hi">hiperparámetros hardcodeados</span>
+      <span class="pill hi">paths hardcodeados</span>
+      <span class="pill">visualización</span>
+      <span class="pill">inferencia</span>
+    </div>
+    <p style="margin-top:28px">Funciona para explorar. Se rompe cuando hay que reutilizar, escalar o trabajar en equipo.</p>
+    <div class="slide-num">02 / 09</div>
+  </div>
+
+  <!-- 03 THE PRINCIPLE -->
+  <div class="slide" id="s3">
+    <div class="label">El principio central</div>
+    <div class="rule-box" data-label="REGLA">
+      <div class="rule-text">
+        Los <em>scripts son dumb</em>.<br>
+        El <em>src/ es smart</em>.
+      </div>
+    </div>
+    <p style="margin-top:32px">Toda la lógica vive en <code style="font-family:var(--mono);color:var(--accent3)">src/</code>. Los scripts solo parsean argumentos, cargan config, y llaman a <code style="font-family:var(--mono);color:var(--accent3)">src/</code>.</p>
+    <div class="slide-num">03 / 09</div>
+  </div>
+
+  <!-- 04 THREE LAYERS -->
+  <div class="slide" id="s4">
+    <div class="label">Arquitectura</div>
+    <h2>Tres <em>capas</em></h2>
+    <div class="layers">
+      <div class="layer">
+        <div class="layer-icon">CONSOLE</div>
+        <div>
+          <div class="layer-title">Lo que el usuario escribe</div>
+          <div class="layer-desc">make train &nbsp;·&nbsp; make evaluate CHECKPOINT=runs/best.pt</div>
+        </div>
+        <div class="layer-arrow">↓</div>
+      </div>
+      <div class="layer">
+        <div class="layer-icon">scripts/</div>
+        <div>
+          <div class="layer-title">Entry points delgados</div>
+          <div class="layer-desc">parse_args() &nbsp;·&nbsp; load config &nbsp;·&nbsp; call src/</div>
+        </div>
+        <div class="layer-arrow">↓</div>
+      </div>
+      <div class="layer">
+        <div class="layer-icon">src/</div>
+        <div>
+          <div class="layer-title">Toda la lógica</div>
+          <div class="layer-desc">instalable &nbsp;·&nbsp; testeable &nbsp;·&nbsp; reutilizable &nbsp;·&nbsp; sin argparse</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">04 / 09</div>
+  </div>
+
+  <!-- 05 WHAT GOES WHERE -->
+  <div class="slide" id="s5">
+    <div class="label">División de responsabilidades</div>
+    <div class="cols">
+      <div class="col">
+        <div class="col-title">src/ contiene</div>
+        <ul>
+          <li>Carga de datos y transforms</li>
+          <li>Definición del modelo</li>
+          <li>Loops de train/eval</li>
+          <li>Callbacks (checkpoint, early stop)</li>
+          <li>Predictor para inferencia</li>
+          <li>Utilidades de I/O y logging</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="col-title">src/ NUNCA tiene</div>
+        <ul>
+          <li style="color:var(--accent2)">argparse</li>
+          <li style="color:var(--accent2)">yaml.safe_load</li>
+          <li style="color:var(--accent2)">Paths hardcodeados</li>
+          <li style="color:var(--accent2)">print("Training...")</li>
+          <li style="color:var(--accent2)">Lógica de CLI</li>
+          <li style="color:var(--accent2)">Conocimiento de argv</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-num">05 / 09</div>
+  </div>
+
+  <!-- 06 CONFIG OVERRIDE -->
+  <div class="slide" id="s6">
+    <div class="label">El patrón de config</div>
+    <h2>YAML como <em>fuente de verdad</em></h2>
+    <pre><span class="cm"># config/base.yaml gana siempre,
+# salvo que el CLI sobreescriba explícitamente</span>
+
+<span class="kw">with</span> <span class="fn">open</span>(args.config) <span class="kw">as</span> f:
+    cfg = yaml.safe_load(f)
+
+<span class="kw">if</span> args.batch_size:
+    cfg[<span class="str">"training"</span>][<span class="str">"batch_size"</span>] = args.batch_size
+
+<span class="kw">if</span> args.run_name:
+    cfg[<span class="str">"logging"</span>][<span class="str">"run_name"</span>] = args.run_name</pre>
+    <p style="margin-top:20px">Default: <code style="font-family:var(--mono);color:var(--accent3)">make train</code> &nbsp;·&nbsp; Experimento rápido: <code style="font-family:var(--mono);color:var(--accent3)">--batch-size 128</code> &nbsp;·&nbsp; Sin editar archivos.</p>
+    <div class="slide-num">06 / 09</div>
+  </div>
+
+  <!-- 07 PIP INSTALL -->
+  <div class="slide" id="s7">
+    <div class="label">Por qué pip install -e .</div>
+    <h2>Python necesita saber<br>dónde está <em>src/</em></h2>
+    <pre><span class="cm"># Sin instalar → NameError al importar src/</span>
+<span class="kw">from</span> src.data.dataset <span class="kw">import</span> build_dataloaders  <span class="hl2">✗</span>
+
+<span class="cm"># Con pip install -e .</span>
+<span class="cm"># Python lee src/ directamente desde tu carpeta</span>
+<span class="kw">from</span> src.data.dataset <span class="kw">import</span> build_dataloaders  <span class="hl">✓</span>
+
+<span class="cm"># El -e significa editable:
+# cualquier cambio en src/ se refleja sin reinstalar</span></pre>
+    <div class="slide-num">07 / 09</div>
+  </div>
+
+  <!-- 08 PREPROCESSING -->
+  <div class="slide" id="s8">
+    <div class="label">Reproducibilidad</div>
+    <h2>¿Qué se guarda<br>del <em>preprocesamiento</em>?</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Qué</th>
+          <th>¿Se guarda?</th>
+          <th>Cómo garantizar consistencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pesos del modelo</td>
+          <td class="yes">Sí</td>
+          <td>Cargar desde el mismo checkpoint</td>
+        </tr>
+        <tr>
+          <td>Tokenizador (NLP)</td>
+          <td class="yes">Sí</td>
+          <td>save_pretrained / push_to_hub</td>
+        </tr>
+        <tr>
+          <td>ImageNet transforms (CV)</td>
+          <td class="no">No</td>
+          <td>Siempre llamar weights.transforms()</td>
+        </tr>
+        <tr>
+          <td>Limpieza de texto custom</td>
+          <td class="no">No</td>
+          <td>Copiar la función en predictor.py</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="slide-num">08 / 09</div>
+  </div>
+
+  <!-- 09 MAKEFILE -->
+  <div class="slide" id="s9">
+    <div class="label">El Makefile</div>
+    <h2>Un menú de comandos<br>para el <em>proyecto</em></h2>
+    <pre><span class="cm"># Flujo completo</span>
+<span class="fn">make</span> data
+<span class="fn">make</span> train
+<span class="fn">make</span> evaluate  <span class="str">CHECKPOINT=runs/best.pt</span>
+<span class="fn">make</span> serve     <span class="str">CHECKPOINT=runs/best.pt</span>  <span class="str">PORT=8081</span>
+
+<span class="cm"># Smoke test antes de un run largo</span>
+<span class="fn">make</span> smoke</pre>
+    <p style="margin-top:20px">Nada de magic — cada target es un alias de <code style="font-family:var(--mono);color:var(--accent3)">python scripts/X.py --config config/base.yaml</code></p>
+    <div class="slide-num">09 / 09</div>
+  </div>
+
+</div>
+
+<!-- progress + nav -->
+<div id="progress" style="width:11.1%"></div>
+<div class="nav">
+  <button onclick="go(-1)">← PREV</button>
+  <button onclick="go(1)">NEXT →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+
+  function go(dir) {
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(slides.length - 1, cur + dir));
+    slides[cur].classList.add('active');
+    document.getElementById('progress').style.width =
+      ((cur + 1) / slides.length * 100) + '%';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') go(1);
+    if (e.key === 'ArrowLeft')  go(-1);
+  });
+
+  // touch swipe
+  let tx = 0;
+  document.addEventListener('touchstart', e => tx = e.touches[0].clientX);
+  document.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+  });
+</script>
+</body>
+</html>
